@@ -1,0 +1,56 @@
+/* Styling for Navbar brand */
+.navbar-brand {
+  font-size: 3em;
+  font-weight: bold;
+  line-height: 1.1;
+  color: #292526;
+  text-align: center;
+  text-transform: uppercase; /* Adds emphasis to the brand name */
+  letter-spacing: 2px; /* Increases space between letters for better readability */
+  transition: color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.navbar-brand:hover {
+  color: #107c58; /* Subtle color change on hover for interactive feel */
+}
+
+/* Styling for Navbar menu (links) */
+.navbar-nav {
+  font-size: 1.6em;
+  text-align: center;
+}
+
+.navbar-menu {
+  font-size: 3.2em !important;
+  color: white;
+  text-align: center !important;
+  background-color: transparent;
+  line-height: 1.1;
+  border: 0;
+  transition: transform 0.3s ease; /* Add a smooth effect for interactivity */
+}
+
+.navbar-menu:hover {
+  transform: scale(1.1); /* Slight scale effect on hover */
+}
+
+/* Media Query for smaller screens */
+@media screen and (max-width: 820px) {
+  .navbar-brand {
+    font-size: 2.5em;
+  }
+
+  .navbar-menu {
+    font-size: 2em !important;
+  }
+
+  .bg-nav {
+    height: 105px;
+    padding: 0.2rem;
+  }
+
+  /* Adjust the Navbar brand spacing for smaller screens */
+  .navbar-brand {
+    margin-bottom: 0; /* Remove margin for better alignment */
+  }
+}
