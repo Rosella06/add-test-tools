@@ -433,55 +433,62 @@
 
 // export default QueueList;
 
-
 import React, { useState, useEffect } from "react";
-import { io, Socket } from "socket.io-client";
 
 const QueueList: React.FC = () => {
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3001");
-    newSocket.on("connect", () => {
+    const socket = new WebSocket("ws://localhost:3001");
+
+    socket.onopen = () => {
       console.log("✅ Connected to WebSocket");
       setIsConnected(true);
-    });
+    };
 
-    newSocket.on("disconnect", () => {
+    socket.onclose = () => {
       console.log("❌ Disconnected from WebSocket");
-      setIsConnected(false);
-    });
+      // setIsConnected(false);
+    };
 
-    newSocket.on("serverMessage", (data) => {
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
       console.log("📩 Message from Server:", data);
-      setStatusMessage(data);
-    });
-
-    setSocket(newSocket);
+      setStatusMessage(data.message);
+    };
 
     return () => {
-      newSocket.disconnect();
+      socket.close();
     };
   }, []);
 
   const sendCommand = (floor: number, position: number) => {
-    if (!socket || !isConnected) {
-      console.error("⚠️ WebSocket not connected!");
-      return;
-    }
-
     const key = `${floor}-${position}`;
     const qty = quantities[key] || 1;
-    const command = { floor, position, qty, status: "preparing" };
+    const command = { floor, position, qty,container: 1 };
 
     console.log("📤 Sending Command:", command);
 
-    socket.emit("clientCommand", command);
+    fetch("http://localhost:3000/api/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(command),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("📩 Response from API:", data);
+        setStatusMessage(data.message);
+      })
+      .catch((error) => {
+        console.error("❌ Error sending command:", error);
+        setStatusMessage("ไม่สามารถส่งคำสั่งได้");
+      });
   };
 
   const handleQuantityChange = (
