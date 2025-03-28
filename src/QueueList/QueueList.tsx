@@ -433,14 +433,175 @@
 
 // export default QueueList;
 
+// import React, { useState, useEffect } from "react";
+
+// const QueueList: React.FC = () => {
+//   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+//   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
+//   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+//   const [isConnected, setIsConnected] = useState(true);
+//   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+//   const [queue, setQueue] = useState<{ floor: number; position: number }[]>([]); 
+
+//   useEffect(() => {
+//     const socket = new WebSocket("ws://localhost:3001");
+
+//     socket.onopen = () => {
+//       console.log("✅ Connected to WebSocket");
+//       setIsConnected(true);
+//     };
+
+//     socket.onclose = () => {
+//       console.log("❌ Disconnected from WebSocket");
+//     };
+
+//     socket.onmessage = (event) => {
+//       const data = JSON.parse(event.data);
+//       console.log("📩 Message from Server:", data);
+//       setStatusMessage(data.message);
+//     };
+
+//     return () => {
+//       socket.close();
+//     };
+//   }, []);
+
+//   const sendCommand = (floor: number, position: number) => {
+//     const key = `${floor}-${position}`;
+//     const qty = quantities[key] || 1;
+//     const command = { floor, position, qty, container: 1 };
+
+//     console.log("📤 Sending Command:", command);
+
+//     setQueue((prev) => [...prev, { floor, position }]); 
+
+//     fetch("http://localhost:3000/api/send", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(command),
+//     })
+//       .then((response) => response.json())
+//       .then((data) => {
+//         console.log("📩 Response from API:", data);
+//         setStatusMessage(data.message);
+
+//         // เมื่อ PLC ตอบกลับ รอ 3 วินาทีแล้วค่อยเอาออกจาก queue
+//         setTimeout(() => {
+//           setQueue((prev) => prev.filter((item) => item.floor !== floor || item.position !== position));
+//         }, 3000);
+//       })
+//       .catch((error) => {
+//         console.error("❌ Error sending command:", error);
+//         setStatusMessage("ไม่สามารถส่งคำสั่งได้");
+//       });
+//   };
+
+//   return (
+//     <div className="flex flex-col items-center space-y-4">
+//       <div className="w-full bg-gray-200 p-4 rounded-md shadow-md">
+//         <h2 className="text-lg font-semibold">🗄️ รายการที่กำลังจัด</h2>
+//         {queue.length > 0 ? (
+//           <ul>
+//             {queue.map((item, index) => (
+//               <li key={index} className="text-blue-600 font-medium">
+//                 ชั้นที่ {item.floor} - ช่องที่ {item.position}
+//               </li>
+//             ))}
+//           </ul>
+//         ) : (
+//           <p className="text-gray-500">ไม่มีรายการที่กำลังจัด</p>
+//         )}
+//       </div>
+
+//       {[...Array(7)].map((_, i) => {
+//         const floorIndex = 7 - i;
+//         return (
+//           <div key={floorIndex} className="space-y-2">
+//             <h2 className="text-xl font-semibold">ชั้นที่ {floorIndex}</h2>
+//             <div className="grid grid-cols-12 gap-1.5">
+//               {[...Array(12)].map((_, positionIndex) => {
+//                 const key = `${floorIndex}-${positionIndex + 1}`;
+//                 return (
+//                   <div
+//                     key={positionIndex}
+//                     className={`p-3 border rounded-lg shadow-md flex flex-col items-center space-y-1 cursor-pointer ${
+//                       selectedFloor === floorIndex && selectedPosition === positionIndex + 1
+//                         ? "bg-blue-100"
+//                         : "bg-white"
+//                     }`}
+//                     onClick={() => {
+//                       setSelectedFloor(floorIndex);
+//                       setSelectedPosition(positionIndex + 1);
+//                     }}
+//                   >
+//                     <div className="flex flex-col items-center space-x-1">
+//                       <p className="whitespace-nowrap">ช่องที่ {positionIndex + 1}</p>
+//                       <span className="text-xl font-bold">{quantities[key] || 0}</span>
+//                     </div>
+//                     <div className="flex space-x-1 gap-1">
+//                       <button
+//                         onClick={(e) => {
+//                           e.stopPropagation();
+//                           setQuantities((prev) => ({
+//                             ...prev,
+//                             [key]: Math.max((prev[key] || 0) - 1, 0),
+//                           }));
+//                         }}
+//                         className="bg-red-500 text-white px-2 py-1 rounded"
+//                         disabled={(quantities[key] || 0) <= 0}
+//                       >
+//                         -
+//                       </button>
+//                       <button
+//                         onClick={(e) => {
+//                           e.stopPropagation();
+//                           setQuantities((prev) => ({
+//                             ...prev,
+//                             [key]: (prev[key] || 0) + 1,
+//                           }));
+//                         }}
+//                         className="bg-green-500 text-white px-1.5 py-1 rounded"
+//                       >
+//                         +
+//                       </button>
+//                     </div>
+
+//                     <button
+//                       onClick={(e) => {
+//                         e.stopPropagation();
+//                         sendCommand(floorIndex, positionIndex + 1);
+//                       }}
+//                       className="bg-blue-500 text-white px-4 py-1 rounded disabled:opacity-50"
+//                       disabled={!isConnected}
+//                     >
+//                       จัด
+//                     </button>
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// };
+
+// export default QueueList;
+
 import React, { useState, useEffect } from "react";
+import { MdDeleteOutline } from "react-icons/md";
 
 const QueueList: React.FC = () => {
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const [isConnected, setIsConnected] = useState(true);
+  //@ts-ignore
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [queue, setQueue] = useState<{ floor: number; position: number; qty: number; timeoutId: NodeJS.Timeout | null }[]>([]);
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:3001");
@@ -452,7 +613,6 @@ const QueueList: React.FC = () => {
 
     socket.onclose = () => {
       console.log("❌ Disconnected from WebSocket");
-      // setIsConnected(false);
     };
 
     socket.onmessage = (event) => {
@@ -469,56 +629,103 @@ const QueueList: React.FC = () => {
   const sendCommand = (floor: number, position: number) => {
     const key = `${floor}-${position}`;
     const qty = quantities[key] || 1;
-    const command = { floor, position, qty,container: 1 };
+    const command = { floor, position, qty, container: 1 };
 
     console.log("📤 Sending Command:", command);
-
-    fetch("http://localhost:3000/api/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(command),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("📩 Response from API:", data);
-        setStatusMessage(data.message);
-      })
-      .catch((error) => {
-        console.error("❌ Error sending command:", error);
-        setStatusMessage("ไม่สามารถส่งคำสั่งได้");
-      });
-  };
-
-  const handleQuantityChange = (
-    floor: number,
-    position: number,
-    delta: number
-  ) => {
-    const key = `${floor}-${position}`;
     setQuantities((prev) => ({
       ...prev,
-      [key]: Math.max((prev[key] || 0) + delta, 0),
+      [key]: 0,
     }));
+    const timeoutId = setTimeout(() => {
+      fetch("http://localhost:3000/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(command),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("📩 Response from API:", data);
+          setStatusMessage(data.message);
+          setQueue((prev) => prev.filter((item) => item.floor !== floor || item.position !== position));
+        
+      })
+        .catch((error) => {
+          console.error("❌ Error sending command:", error);
+          setStatusMessage("ไม่สามารถส่งคำสั่งได้");
+        });
+    }, 5000);
+
+    setQueue((prev) => [...prev, { floor, position, qty, timeoutId }]);
+  };
+
+  // const removeFromQueue = () => {
+  //   setQueue((prevQueue) => {
+  //     prevQueue.forEach((item) => {
+  //       if (item.timeoutId) {
+  //         clearTimeout(item.timeoutId);
+  //       }
+  //     });
+  //     console.log("🚫 ยกเลิกคำสั่งทั้งหมด");
+  //     return [];
+  //   });
+  // };
+  
+
+  const clearQueue = () => {
+    setQueue((prevQueue) => {
+      prevQueue.forEach((item) => {
+        if (item.timeoutId) {
+          clearTimeout(item.timeoutId);
+        }
+      });
+      console.log("🚫 ยกเลิกคำสั่งทั้งหมด");
+      return [];
+    });
   };
 
   return (
     <div className="flex flex-col items-center space-y-4">
+      <div className="w-full bg-gray-200 p-4 rounded-md shadow-md">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">🗄️ รายการที่กำลังจัด</h2>
+          <button
+            onClick={clearQueue}
+            className="bg-red-500 text-white px-2 py-1 rounded shadow-md hover:bg-red-600"
+          >
+            <MdDeleteOutline className="text-3xl" />
+          </button>
+        </div>
+
+        {queue.length > 0 ? (
+          <ul>
+            {queue.map((item, index) => (
+              <li key={index} className="text-blue-600 font-medium">
+                ชั้นที่ {item.floor} - ช่องที่ {item.position} - จำนวนยา {item.qty} 
+             
+
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>ไม่มีรายการในคิว</p>
+        )}
+      </div>
+
       {[...Array(7)].map((_, i) => {
         const floorIndex = 7 - i;
         return (
           <div key={floorIndex} className="space-y-2">
-            <h2 className="text-xl font-semibold"> ชั้นที่ {floorIndex} </h2>
-            <div className="grid grid-cols-12 gap-2">
+            <h2 className="text-xl font-semibold">ชั้นที่ {floorIndex}</h2>
+            <div className="grid grid-cols-12 gap-1.5">
               {[...Array(12)].map((_, positionIndex) => {
                 const key = `${floorIndex}-${positionIndex + 1}`;
                 return (
                   <div
                     key={positionIndex}
-                    className={`p-3 border rounded-lg shadow-md flex flex-col items-center space-y-2 cursor-pointer ${
-                      selectedFloor === floorIndex &&
-                      selectedPosition === positionIndex + 1
+                    className={`p-3 border rounded-lg shadow-md flex flex-col items-center space-y-1 cursor-pointer ${
+                      selectedFloor === floorIndex && selectedPosition === positionIndex + 1
                         ? "bg-blue-100"
                         : "bg-white"
                     }`}
@@ -527,45 +734,44 @@ const QueueList: React.FC = () => {
                       setSelectedPosition(positionIndex + 1);
                     }}
                   >
-                    <p>ช่องที่ {positionIndex + 1}</p>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex flex-col items-center space-x-1">
+                      <p className="whitespace-nowrap">ช่องที่ {positionIndex + 1}</p>
+                      <span className="text-xl font-bold">{quantities[key] || 0}</span>
+                    </div>
+                    <div className="flex space-x-1 gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleQuantityChange(
-                            floorIndex,
-                            positionIndex + 1,
-                            -1
-                          );
+                          setQuantities((prev) => ({
+                            ...prev,
+                            [key]: Math.max((prev[key] || 0) - 1, 0),
+                          }));
                         }}
-                        className="bg-red-500 text-white px-2 rounded"
+                        className="bg-red-500 text-white px-2 py-1 rounded"
                         disabled={(quantities[key] || 0) <= 0}
                       >
                         -
                       </button>
-                      <span> {quantities[key] || 0} </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleQuantityChange(
-                            floorIndex,
-                            positionIndex + 1,
-                            1
-                          );
+                          setQuantities((prev) => ({
+                            ...prev,
+                            [key]: (prev[key] || 0) + 1,
+                          }));
                         }}
-                        className="bg-green-500 text-white px-2 rounded"
+                        className="bg-green-500 text-white px-1.5 py-1 rounded"
                       >
                         +
                       </button>
                     </div>
-
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         sendCommand(floorIndex, positionIndex + 1);
                       }}
                       className="bg-blue-500 text-white px-4 py-1 rounded disabled:opacity-50"
-                      disabled={!isConnected}
+                      disabled={!isConnected || (quantities[key] || 0) === 0}
                     >
                       จัด
                     </button>
@@ -576,14 +782,15 @@ const QueueList: React.FC = () => {
           </div>
         );
       })}
-      {statusMessage && (
-        <p className="text-lg font-semibold">📢 {statusMessage} </p>
-      )}
     </div>
   );
 };
 
 export default QueueList;
+
+
+
+
 
 // เพิ่มการทำงานโดย เอาบบรรทัดคิว เรียงคิว ทำงานตามลำดับ และก็ ขยับ +- มาไว้บรรทัดใหม่ จัดการสถานะ 
 
@@ -730,259 +937,4 @@ export default QueueList;
 
 // export default QueueList;
 
-// import React, { useState, useEffect } from 'react';
-
-// const QueueList: React.FC = () => {
-//   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
-//   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
-//   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-//   const [message, setMessage] = useState('');
-//   const [socket, setSocket] = useState<WebSocket | null>(null);
-//   const [isConnected, setIsConnected] = useState(false);
-//   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-
-//   // ฟังก์ชันเชื่อมต่อ WebSocket
-//   const connectWebSocket = () => {
-//     const ws = new WebSocket('ws://localhost:8080');
-
-//     ws.onopen = () => {
-//       console.log('✅ WebSocket Connected!');
-//       setIsConnected(true);
-//     };
-
-//     ws.onmessage = (event) => {
-//       const data = event.data;
-
-//       // ตรวจสอบว่าเป็น Buffer
-//       if (data instanceof Buffer) {
-//         const jsonString = data.toString('utf-8');
-//         console.log('📥 Received WebSocket message:', jsonString);
-
-//         try {
-//           // แปลงข้อความเป็น JSON
-//           const json = JSON.parse(jsonString);
-//           console.log('📥 Parsed JSON:', json);
-
-//           // ตรวจสอบว่า JSON ที่ได้รับมีข้อมูลที่ต้องการหรือไม่
-//           if (json && json.status && json.floor && json.position) {
-//             console.log('✅ Valid PLC response:', json);
-
-//             // ตรวจสอบสถานะของ PLC
-//             if (json.status === 'preparing') {
-//               console.log('PLC Status: กำลังจัดยา');
-//             } else if (json.status === 'done') {
-//               console.log('PLC Status: จัดยาเสร็จ');
-//             } else {
-//               console.log('PLC Status: อื่นๆ');
-//             }
-//           } else {
-//             console.error('⚠️ Invalid PLC response format:', json);
-//           }
-//         } catch (error) {
-//           console.error('⚠️ Error parsing JSON:', error);
-//         }
-//       } else {
-//         console.error('⚠️ Received data is not a valid Buffer:', data);
-//       }
-//     };
-
-//     ws.onclose = () => {
-//       console.log('❌ WebSocket Disconnected! Reconnecting...');
-//       setIsConnected(false);
-//       setTimeout(() => connectWebSocket(), 5000); // เชื่อมต่อใหม่ทุก 5 วินาที
-//     };
-
-//     ws.onerror = (error) => console.error('⚠️ WebSocket Error:', error);
-
-//     setSocket(ws);
-//   };
-
-//   useEffect(() => {
-//     connectWebSocket();
-//     return () => {
-//       if (socket) socket.close();
-//     };
-//   }, []);
-
-//   // ฟังก์ชันส่งคำสั่งไป WebSocket
-//   const sendCommand = (floor: number, position: number) => {
-//     if (!socket || socket.readyState !== WebSocket.OPEN) {
-//       console.error('⚠️ WebSocket not connected!');
-//       return;
-//     }
-
-//     const key = `${floor}-${position}`;
-//     const qty = quantities[key] || 1;
-
-//     const command = { floor, position, qty, status: 'preparing' };
-//     console.log('📤 Sending Command:', command);
-//     socket.send(JSON.stringify(command)); // ส่งคำสั่งไปยัง WebSocket Server
-//     setStatusMessage('✅ คำสั่งส่งไปยัง PLC สำเร็จ');
-//   };
-
-//   const handleQuantityChange = (floor: number, position: number, delta: number) => {
-//     const key = `${floor}-${position}`;
-//     setQuantities((prev) => ({
-//       ...prev,
-//       [key]: Math.max((prev[key] || 0) + delta, 0),
-//     }));
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center space-y-4">
-//       <button
-//         onClick={connectWebSocket}
-//         disabled={isConnected}
-//         className="bg-yellow-500 text-white px-4 py-2 rounded disabled:opacity-50"
-//       >
-//         🔄 Reconnect
-//       </button>
-
-//       {[...Array(7)].map((_, i) => {
-//         const floorIndex = 7 - i;
-//         return (
-//           <div key={floorIndex} className="space-y-2">
-//             <h2 className="text-xl font-semibold">ชั้นที่ {floorIndex}</h2>
-//             <div className="grid grid-cols-12 gap-2">
-//               {[...Array(12)].map((_, positionIndex) => {
-//                 const key = `${floorIndex}-${positionIndex + 1}`;
-//                 return (
-//                   <div
-//                     key={positionIndex}
-//                     className={`p-3 border rounded-lg shadow-md flex flex-col items-center space-y-2 cursor-pointer ${
-//                       selectedFloor === floorIndex && selectedPosition === positionIndex + 1
-//                         ? 'bg-blue-100 '
-//                         : 'bg-white'
-//                     }`}
-//                     onClick={() => {
-//                       setSelectedFloor(floorIndex);
-//                       setSelectedPosition(positionIndex + 1);
-//                     }}
-//                   >
-//                     <p>ช่องที่ {positionIndex + 1}</p>
-//                     <div className="flex items-center space-x-1">
-//                       <button
-//                         onClick={(e) => {
-//                           e.stopPropagation();
-//                           handleQuantityChange(floorIndex, positionIndex + 1, -1);
-//                         }}
-//                         className="bg-red-500 text-white px-2 rounded"
-//                         disabled={(quantities[key] || 0) <= 0}
-//                       >
-//                         -
-//                       </button>
-//                       <span>{quantities[key] || 0}</span>
-//                       <button
-//                         onClick={(e) => {
-//                           e.stopPropagation();
-//                           handleQuantityChange(floorIndex, positionIndex + 1, 1);
-//                         }}
-//                         className="bg-green-500 text-white px-2 rounded"
-//                       >
-//                         +
-//                       </button>
-//                     </div>
-
-//                     <button
-//                       onClick={(e) => {
-//                         e.stopPropagation();
-//                         sendCommand(floorIndex, positionIndex + 1);
-//                       }}
-//                       className="bg-blue-500 text-white px-4 py-1 rounded disabled:opacity-50"
-//                       disabled={!isConnected}
-//                     >
-//                       จัด
-//                     </button>
-//                   </div>
-//                 );
-//               })}
-//             </div>
-//           </div>
-//         );
-//       })}
-//       {statusMessage && <p className="text-lg font-semibold">{statusMessage}</p>}
-//     </div>
-//   );
-// };
-
-// export default QueueList;
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useEffect, useState } from 'react';
-
-// const QueueList: React.FC = () => {
-//   const [socket, setSocket] = useState<WebSocket | null>(null);
-//   const [message, setMessage] = useState('');
-//   const [isConnected, setIsConnected] = useState(false);
-
-//   useEffect(() => {
-//     const ws = new WebSocket('ws://localhost:8080');
-
-//     ws.onopen = () => {
-//       console.log('✅ WebSocket Connected!');
-//       setIsConnected(true);
-//     };
-//     ws.onmessage = (event) => {
-//       console.log('📥 Response:', event.data);
-//       setMessage(event.data);
-//     };
-//     ws.onclose = () => {
-//       console.log('❌ WebSocket Disconnected!');
-//       setIsConnected(false);
-//     };
-//     ws.onerror = (error) => console.error('⚠️ WebSocket Error:', error);
-
-//     setSocket(ws);
-
-//     // Cleanup function to close the socket when the component is unmounted
-//     return () => {
-//       if (ws.readyState === WebSocket.OPEN) {
-//         ws.close();
-//       }
-//     };
-//   }, []);
-
-//   const sendCommand = () => {
-//     if (!socket || !isConnected) {
-//       console.error('⚠️ WebSocket not connected!');
-//       return;
-//     }
-
-//     const command = {
-//       floor: 1,
-//       position: 10,
-//       qty: 2
-//     };
-
-//     console.log('📤 Sending Command:', command);
-//     socket.send(JSON.stringify(command));
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center space-y-4">
-//       <button
-//         onClick={sendCommand}
-//         className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
-//         disabled={!isConnected} // Disable button if WebSocket is not connected
-//       >
-//         ส่งคำสั่งไปยัง PLC
-//       </button>
-
-//       {message && <p className="text-green-600">📩 ตอบกลับจาก Server: {message}</p>}
-      
-//       {!isConnected && <p className="text-red-600">❌ WebSocket not connected</p>}
-//     </div>
-//   );
-// };
-
-// export default QueueList;
 
