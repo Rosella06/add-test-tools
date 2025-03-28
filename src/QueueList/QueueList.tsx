@@ -585,6 +585,7 @@ const QueueList: React.FC = () => {
 
 export default QueueList;
 
+// เพิ่มการทำงานโดย เอาบบรรทัดคิว เรียงคิว ทำงานตามลำดับ และก็ ขยับ +- มาไว้บรรทัดใหม่ จัดการสถานะ 
 
 
 // import React, { useState, useEffect } from 'react';
