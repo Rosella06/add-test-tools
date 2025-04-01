@@ -593,6 +593,11 @@
 
 import React, { useState, useEffect } from "react";
 import { MdDeleteOutline } from "react-icons/md";
+import { io } from "socket.io-client";
+
+interface DeviceLogType {
+  message: string
+}
 
 const QueueList: React.FC = () => {
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
@@ -603,13 +608,25 @@ const QueueList: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [queue, setQueue] = useState<{ floor: number; position: number; qty: number; timeoutId: NodeJS.Timeout | null }[]>([]);
 
+  const [deviceLog, setDeviceLog] = useState<string[]>([])
+
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:3001");
+    const socket2 = io("ws://localhost:3002");
 
     socket.onopen = () => {
       console.log("✅ Connected to WebSocket");
       setIsConnected(true);
     };
+
+    socket2.on('connect', () => {
+      socket2.on('device', (message: DeviceLogType) => {
+        let text = []
+        text.push(message.message)
+        // setDeviceLog(((pre) => pre.concat(text)))
+        setDeviceLog(text)
+      })
+    }) 
 
     socket.onclose = () => {
       console.log("❌ Disconnected from WebSocket");
@@ -686,32 +703,34 @@ const QueueList: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <div className="w-full bg-gray-200 p-4 rounded-md shadow-md">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold">🗄️ รายการที่กำลังจัด</h2>
-          <button
-            onClick={clearQueue}
-            className="bg-red-500 text-white px-2 py-1 rounded shadow-md hover:bg-red-600"
-          >
-            <MdDeleteOutline className="text-3xl" />
-          </button>
-        </div>
+    <div className="w-full bg-gray-200 p-4 rounded-md shadow-md mb-4">
+  <div className="flex justify-between items-center">
+    <h2 className="text-lg font-semibold">🗄️ รายการที่กำลังจัด</h2>
+    <button
+      onClick={clearQueue}
+      className="bg-red-500 text-white px-2 py-1 rounded shadow-md hover:bg-red-600"
+    >
+      <MdDeleteOutline className="text-3xl" />
+    </button>
+  </div>
 
-        {queue.length > 0 ? (
-          <ul>
-            {queue.map((item, index) => (
-              <li key={index} className="text-blue-600 font-medium">
-                ชั้นที่ {item.floor} - ช่องที่ {item.position} - จำนวนยา {item.qty} 
-             
+  
 
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>ไม่มีรายการในคิว</p>
-        )}
-      </div>
+  {queue.length > 0 ? (
+    <ul className="mt-4">
+      {queue.map((item, index) => (
+        <li key={index} className="text-blue-600 font-medium">
+          ชั้นที่ {item.floor} - ช่องที่ {item.position} - จำนวนยา {item.qty}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>ไม่มีรายการในคิว</p>
+  )}
+
+  <pre>{JSON.stringify(deviceLog, null, 2)}</pre>
+
+
 
       {[...Array(7)].map((_, i) => {
         const floorIndex = 7 - i;
